@@ -34,18 +34,20 @@ export async function POST(request: NextRequest) {
 
     // Set cookies pour la session
     if (result.session) {
+      const isProduction = process.env.NODE_ENV === "production";
+
       response.cookies.set("sb-access-token", result.session.access_token, {
         httpOnly: true,
-        secure: process.env.NODE_ENV === "production",
-        sameSite: "lax",
+        secure: isProduction,
+        sameSite: isProduction ? "none" : "lax",
         path: "/",
         maxAge: 60 * 60 * 24 * 7,
       });
 
       response.cookies.set("sb-refresh-token", result.session.refresh_token, {
         httpOnly: true,
-        secure: process.env.NODE_ENV === "production",
-        sameSite: "lax",
+        secure: isProduction,
+        sameSite: isProduction ? "none" : "lax",
         path: "/",
         maxAge: 60 * 60 * 24 * 7,
       });
