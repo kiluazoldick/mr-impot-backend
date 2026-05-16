@@ -31,13 +31,25 @@ export class CategoryService {
   }
 
   static async create(input: CategoryInput) {
+    // Vérifier si le slug existe déjà, si oui ajouter un suffixe unique
+    let slug = input.slug;
+    const { data: existing } = await supabaseAdmin
+      .from("categories")
+      .select("slug")
+      .eq("slug", slug)
+      .maybeSingle();
+
+    if (existing) {
+      slug = `${slug}-${Date.now()}`;
+    }
+
     const { data, error } = await supabaseAdmin
       .from("categories")
       .insert({
         parent_id: input.parent_id || null,
         name_fr: input.name_fr,
         name_en: input.name_en,
-        slug: input.slug,
+        slug: slug,
         description_fr: input.description_fr || null,
         description_en: input.description_en || null,
         icon: input.icon || null,
@@ -52,6 +64,20 @@ export class CategoryService {
   }
 
   static async update(id: string, input: Partial<CategoryInput>) {
+    // Si un slug est fourni, vérifier qu'il n'est pas déjà utilisé par une autre catégorie
+    if (input.slug) {
+      const { data: existing } = await supabaseAdmin
+        .from("categories")
+        .select("id, slug")
+        .eq("slug", input.slug)
+        .neq("id", id)
+        .maybeSingle();
+
+      if (existing) {
+        input.slug = `${input.slug}-${Date.now()}`;
+      }
+    }
+
     const { data, error } = await supabaseAdmin
       .from("categories")
       .update({
