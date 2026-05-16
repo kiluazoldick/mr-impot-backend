@@ -20,7 +20,14 @@ export async function GET(request: NextRequest) {
       .eq("is_published", true);
 
     if (category_id) {
-      query = query.eq("category_id", category_id);
+      // Chercher aussi dans les sous-catégories
+      const { data: subCategories } = await supabaseAdmin
+        .from("categories")
+        .select("id")
+        .eq("parent_id", category_id);
+
+      const allIds = [category_id, ...(subCategories?.map((c) => c.id) || [])];
+      query = query.in("category_id", allIds);
     }
 
     if (search.trim()) {
