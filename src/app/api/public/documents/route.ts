@@ -11,6 +11,20 @@ export async function GET(request: NextRequest) {
     const offset = (page - 1) * limit;
     const search = searchParams.get("search") || "";
     const category_id = searchParams.get("category_id") || "";
+    const category_slug = searchParams.get("category_slug") || "";
+
+    // Résoudre le category_id à partir du slug si fourni
+    let finalCategoryId = category_id;
+    if (category_slug && !category_id) {
+      const { data: catData } = await supabaseAdmin
+        .from("categories")
+        .select("id")
+        .eq("slug", category_slug)
+        .single();
+      if (catData) {
+        finalCategoryId = catData.id;
+      }
+    }
 
     let query = supabaseAdmin
       .from("documents")
@@ -19,14 +33,17 @@ export async function GET(request: NextRequest) {
       })
       .eq("is_published", true);
 
-    if (category_id) {
+    if (finalCategoryId) {
       // Chercher aussi dans les sous-catégories
       const { data: subCategories } = await supabaseAdmin
         .from("categories")
         .select("id")
-        .eq("parent_id", category_id);
+        .eq("parent_id", finalCategoryId);
 
-      const allIds = [category_id, ...(subCategories?.map((c) => c.id) || [])];
+      const allIds = [
+        finalCategoryId,
+        ...(subCategories?.map((c) => c.id) || []),
+      ];
       query = query.in("category_id", allIds);
     }
 
