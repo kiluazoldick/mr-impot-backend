@@ -65,13 +65,13 @@ export class DocumentService {
   }
 
   static async download(id: string) {
-    const { data: doc } = await supabaseAdmin
+    const { data: doc, error: docError } = await supabaseAdmin
       .from("documents")
-      .select("file_path")
+      .select("file_path, download_count")
       .eq("id", id)
       .single();
 
-    if (!doc?.file_path) throw new Error("Fichier non trouvé");
+    if (docError || !doc?.file_path) throw new Error("Fichier non trouvé");
 
     const { data, error } = await supabaseAdmin.storage
       .from("documents")
