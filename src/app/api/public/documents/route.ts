@@ -19,12 +19,10 @@ export async function GET(request: NextRequest) {
       })
       .eq("is_published", true);
 
-    // Recherche par catégorie
     if (category_id) {
       query = query.eq("category_id", category_id);
     }
 
-    // Recherche simple (titre + description)
     if (search.trim()) {
       const term = `%${search.trim()}%`;
       query = query.or(
