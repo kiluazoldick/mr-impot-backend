@@ -8,14 +8,12 @@ const allowedOrigins = [
 ];
 
 function corsHeaders(origin: string) {
-  // Si l'origine est dans la liste ou si c'est du développement, l'autoriser
-  const allowedOrigin =
-    allowedOrigins.includes(origin) || origin.startsWith("http://localhost")
-      ? origin
-      : allowedOrigins[0];
+  // Vérifier si l'origine est autorisée
+  const isAllowed =
+    allowedOrigins.includes(origin) || origin.startsWith("http://localhost");
 
   return {
-    "Access-Control-Allow-Origin": allowedOrigin,
+    "Access-Control-Allow-Origin": isAllowed ? origin : allowedOrigins[0],
     "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, PATCH, OPTIONS",
     "Access-Control-Allow-Headers":
       "Content-Type, Authorization, X-Requested-With",
