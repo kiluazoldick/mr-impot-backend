@@ -205,8 +205,22 @@ export class DocumentService {
         // Extraire le texte du nouveau PDF
         try {
           console.log("📄 Extraction du texte du PDF mis à jour...");
-          const pdfData = await pdfParse(buffer);
-          updateData.ocr_text = pdfData.text?.trim() || null;
+          const loadingTask = pdfjsLib.getDocument({
+            data: new Uint8Array(buffer),
+          });
+          const pdf = await loadingTask.promise;
+
+          let fullText = "";
+          for (let i = 1; i <= pdf.numPages; i++) {
+            const page = await pdf.getPage(i);
+            const textContent = await page.getTextContent();
+            const pageText = textContent.items
+              .map((item: any) => item.str)
+              .join(" ");
+            fullText += pageText + "\n";
+          }
+
+          updateData.ocr_text = fullText.trim() || null;
           updateData.ocr_status = updateData.ocr_text ? "completed" : "failed";
           console.log(
             `✅ Texte extrait: ${updateData.ocr_text?.length || 0} caractères`,
