@@ -1,11 +1,21 @@
 import { NextResponse, type NextRequest } from "next/server";
 
-// Plus de supabase dans le middleware ! On utilise juste les cookies
-// La vérification admin se fera dans chaque route API
+const allowedOrigins = [
+  "https://mr-impot-admin-front.vercel.app",
+  "https://mr-impot-webapp.vercel.app",
+  "http://localhost:3001",
+  "http://localhost:3002",
+];
 
 function corsHeaders(origin: string) {
+  // Si l'origine est dans la liste ou si c'est du développement, l'autoriser
+  const allowedOrigin =
+    allowedOrigins.includes(origin) || origin.startsWith("http://localhost")
+      ? origin
+      : allowedOrigins[0];
+
   return {
-    "Access-Control-Allow-Origin": origin || "*",
+    "Access-Control-Allow-Origin": allowedOrigin,
     "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, PATCH, OPTIONS",
     "Access-Control-Allow-Headers":
       "Content-Type, Authorization, X-Requested-With",
@@ -39,7 +49,6 @@ export async function proxy(request: NextRequest) {
         { status: 401, headers: corsHeaders(origin) },
       );
     }
-    // La vérification du rôle se fera dans la route API elle-même
   }
 
   // Pour toutes les autres requêtes, ajouter les headers CORS
